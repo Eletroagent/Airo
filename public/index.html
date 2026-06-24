@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <!-- iOS PWA -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Airo Stream" />
+    <meta name="theme-color" content="#000000" />
+    <!-- SEO -->
+    <meta name="description" content="Airo Stream — low-latency 1080p 60fps wireless second display via WebRTC" />
+    <title>Airo Stream</title>
+    <link rel="manifest" href="/manifest.json" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/assets/index-C2kuUmni.css" />
+  </head>
+  <body>
+    <div id="app">
+      <!-- Background WebRTC video — full viewport -->
+      <video
+        id="streamVideo"
+        autoplay
+        playsinline
+        muted
+        style="width:100vw;height:100vh;object-fit:contain;background:#000;position:absolute;top:0;left:0;z-index:1;"
+      ></video>
+
+      <!-- Floating hamburger menu button (top-left) -->
+      <button id="menuBtn" class="glass-btn menu-btn" title="Toggle Menu">
+        <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="3" y1="6"  x2="21" y2="6"></line>
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+      </button>
+
+      <!-- Glassmorphism control panel -->
+      <div id="uiOverlay" class="glass-panel">
+        <h1 class="brand">Airo<span class="brand-accent">Stream</span></h1>
+
+        <div class="control-group">
+          <label for="ipInput">Server IP</label>
+          <input type="text" id="ipInput" placeholder="192.168.1.X" autocomplete="off" />
+        </div>
+
+        <button id="connectBtn" class="primary-btn">Connect to Server</button>
+
+        <div id="statusIndicator" class="status disconnected">Disconnected</div>
+
+        <!-- Stats panel (visible after connect) -->
+        <div id="statsPanel" style="display:none;">
+          <div class="stat-row"><span>FPS:</span>       <span id="fpsCount">0</span></div>
+          <div class="stat-row"><span>Bandwidth:</span> <span id="bwCount">0 MB/s</span></div>
+
+          <div class="control-group toggle-group">
+            <label class="switch">
+              <input type="checkbox" id="statsToggleBtn" />
+              <span class="slider round"></span>
+            </label>
+            <span class="toggle-label">Show On-Screen Stats</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Floating live stats overlay (top-left, next to menu) -->
+      <div id="floatingStats" class="floating-stats hidden">
+        <div id="floatingFps">0 FPS</div>
+        <div id="floatingBw">0.00 MB/s</div>
+      </div>
+
+      <!-- Fullscreen button (bottom-right) -->
+      <button id="fullscreenBtn" class="glass-btn" title="Toggle Fullscreen">
+        <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Single, maintainable JS file — no bundler hashes to track -->
+    <script src="/app.js"></script>
+  </body>
+</html>

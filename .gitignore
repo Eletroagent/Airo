@@ -1,0 +1,21 @@
+# Build output
+bin/
+obj/
+*.user
+
+# IDEs
+.vscode/
+.vs/
+
+# Runtime and temporary files
+*.log
+*_stdout.txt
+*_stderr.txt
+*.h264
+dump.txt
+classes.txt
+scratch/
+
+# Driver & local config (keep config.example.json tracked instead)
+Driver/
+config.json

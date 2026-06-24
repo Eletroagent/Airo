@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Airo Zero-Lag Stream</title>
+    <style>
+        body {
+            background-color: #0f172a;
+            color: #f8fafc;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+        h1 {
+            font-weight: 300;
+            letter-spacing: 2px;
+            margin-bottom: 20px;
+        }
+        #video-container {
+            width: 80vw;
+            max-width: 1280px;
+            aspect-ratio: 16/9;
+            background: #000;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+        canvas {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        #status {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0,0,0,0.6);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            backdrop-filter: blur(4px);
+            z-index: 10;
+        }
+        .btn {
+            margin-top: 30px;
+            padding: 12px 32px;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+        .btn:hover {
+            background: #2563eb;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+        }
+    </style>
+</head>
+<body>
+
+    <h1>AIRO ZERO-LAG STREAM</h1>
+    
+    <div id="video-container">
+        <div id="status">Status: Disconnected</div>
+        <canvas id="remoteCanvas"></canvas>
+    </div>
+
+    <button class="btn" id="connectBtn">CONNECT TO SERVER</button>
+
+    <script>
+        const statusEl = document.getElementById('status');
+        const remoteCanvas = document.getElementById('remoteCanvas');
+        const ctx = remoteCanvas.getContext('2d', { alpha: false });
+        const connectBtn = document.getElementById('connectBtn');
+
+        let ws;
+        let isFirstFrame = true;
+
+        connectBtn.addEventListener('click', async () => {
+            connectBtn.disabled = true;
+            connectBtn.innerText = "CONNECTING...";
+            statusEl.innerText = "Status: Connecting to TCP Stream...";
+
+            ws = new WebSocket('ws://127.0.0.1:5001/webrtc');
+            ws.binaryType = "blob";
+
+            ws.onopen = async () => {
+                statusEl.innerText = "Status: STREAM LIVE (Zero-Lag Canvas)";
+                statusEl.style.color = "#4ade80";
+                connectBtn.innerText = "CONNECTED";
+            };
+
+            ws.onmessage = async (event) => {
+                if (event.data instanceof Blob) {
+                    try {
+                        // Hardware accelerated image decoding completely bypasses the DOM UI thread!
+                        const bitmap = await createImageBitmap(event.data);
+                        
+                        if (isFirstFrame) {
+                            remoteCanvas.width = bitmap.width;
+                            remoteCanvas.height = bitmap.height;
+                            isFirstFrame = false;
+                        }
+                        
+                        // Draw directly to the GPU canvas
+                        ctx.drawImage(bitmap, 0, 0, remoteCanvas.width, remoteCanvas.height);
+                        
+                        // Explicitly close the bitmap to free GPU memory instantly
+                        bitmap.close();
+                    } catch (e) {
+                        console.error("Frame drop: ", e);
+                    }
+                }
+            };
+
+            ws.onerror = (err) => {
+                statusEl.innerText = "Status: TCP WebSocket Error!";
+                statusEl.style.color = "#ef4444";
+                connectBtn.disabled = false;
+                connectBtn.innerText = "RETRY CONNECTION";
+            };
+
+            ws.onclose = () => {
+                statusEl.innerText = "Status: Disconnected";
+                statusEl.style.color = "#ef4444";
+                connectBtn.disabled = false;
+                connectBtn.innerText = "RECONNECT";
+                isFirstFrame = true;
+            };
+        });
+    </script>
+</body>
+</html>
