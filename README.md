@@ -6,6 +6,18 @@ This application allows you to seamlessly extend your Windows desktop to other d
 
 Because this application interacts with low-level Windows APIs for display capturing and high-performance video encoding, there are a few strict requirements you must satisfy before running it.
 
+## Quick Start
+
+Follow these steps to get Airo Stream running from a pre-built release without needing to compile anything:
+
+1. **Download Release**: Download the latest release `.zip` from the [Releases page](https://github.com/Eletroagent/Airo/releases).
+2. **Extract Files**: Extract the zip. You should see `Airo.exe`, `vpxmd.dll`, `config.example.json`, and a `public/` folder together in one directory.
+3. **Install FFmpeg**: The app will refuse to start and show an error dialog if FFmpeg is missing. See the **FFmpeg** dependency section below for setup instructions.
+4. **Install Virtual Display Driver**: Download the `usbmmidd_v2` package directly from [Amyuni](https://www.amyuni.com/downloads/usbmmidd_v2.zip). Extract it and place the files inside a new `Driver` folder next to `Airo.exe`. See the **Amyuni Virtual Display Driver** section below for exact details.
+5. **Run**: Double-click `Airo.exe` to launch the server. A UAC administrator prompt will appear; this is expected and required to manage the virtual display driver.
+6. **Automatic Config**: A `config.json` file is automatically created from `config.example.json` on your first run. No manual step is needed unless you want to customize settings.
+7. **Troubleshooting**: If anything goes wrong, check the **Troubleshooting First-Run Failures** section at the bottom.
+
 ## System Requirements
 - **OS Version:** Windows 10 (Version 2004 or newer) or Windows 11.
 - **.NET Runtime:** .NET 8.0 SDK (for building) or Desktop Runtime (for running only). [Download here](https://dotnet.microsoft.com/en-us/download/dotnet/8.0). Visual Studio is optional.
