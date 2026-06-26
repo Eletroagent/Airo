@@ -8,7 +8,29 @@ Because this application interacts with low-level Windows APIs for display captu
 
 ## System Requirements
 - **OS Version:** Windows 10 (Version 2004 or newer) or Windows 11.
-- **.NET Runtime:** .NET 8.0 Desktop Runtime is required to run the server. [Download here](https://dotnet.microsoft.com/en-us/download/dotnet/8.0).
+- **.NET Runtime:** .NET 8.0 SDK (for building) or Desktop Runtime (for running only). [Download here](https://dotnet.microsoft.com/en-us/download/dotnet/8.0). Visual Studio is optional.
+
+## Build & Run
+
+To build and run the server locally from source (after setting up the dependencies below):
+
+1. Open a command prompt and navigate to the project directory containing `AiroWebRTCServer.csproj`.
+2. Run the following command:
+   ```cmd
+   dotnet run --project AiroWebRTCServer.csproj
+   ```
+
+## Publishing a Release
+
+To create a release build that users can run without compiling from source:
+
+1. Run the publish command:
+   ```cmd
+   dotnet publish -c Release -r win-x64 --self-contained false
+   ```
+2. Navigate to the output directory: `bin\Release\net8.0-windows10.0.22621.0\win-x64\publish\`
+3. Create the `Driver` folder in this directory and place the extracted Amyuni files inside it (as described below).
+4. Zip up the contents of the `publish` folder to distribute it.
 
 ## Required Dependencies
 
@@ -19,8 +41,7 @@ Airo Stream relies on a `config.json` file to load WebRTC ICE servers.
 
 ### 2. FFmpeg (Video Encoding)
 Airo Stream uses **FFmpeg** to encode the display capture into a high-performance H.264 video stream. **FFmpeg is not bundled with this application.**
-- **Without FFmpeg**, WebRTC will connect successfully, but you will only see a **black screen**. 
-- The application will alert you on startup if FFmpeg is missing.
+- The application requires FFmpeg and will refuse to start, showing an error dialog, if it is missing.
 
 **Installation Steps:**
 1. Download a Windows build of FFmpeg (e.g., from [BtbN/FFmpeg-Builds on GitHub](https://github.com/BtbN/FFmpeg-Builds/releases) or `gyan.dev`).
@@ -33,8 +54,8 @@ Airo Stream relies on the **Amyuni USB Mobile Monitor Virtual Display** driver (
 - You must manually download it from Amyuni and place it in the application's `Driver` folder.
 
 **Installation Steps:**
-1. Download the `usbmmidd_v2` package directly from Amyuni.
-2. Extract the files and create a `Driver` folder next to your built `AiroWebRTCServer.exe`.
+1. Download the `usbmmidd_v2` package directly from Amyuni: [https://www.amyuni.com/downloads/usbmmidd_v2.zip](https://www.amyuni.com/downloads/usbmmidd_v2.zip)
+2. Extract the files and create a `Driver` folder next to your built `Airo.exe` (or in your `publish` directory if making a release).
 3. **Extracting Note:** Sometimes the zip file extracts into an extra subfolder (e.g., `usbmmidd_v2\usbmmidd_v2`). Make sure you move the files up so that `deviceinstaller64.exe` is sitting directly inside the `Driver\` folder.
 
 > **Note on Administrator Privileges:** The application automatically runs as an Administrator because installing or enabling the virtual display driver requires elevated permissions. You will see a UAC (User Account Control) prompt every time you launch the app.
@@ -50,8 +71,8 @@ Airo Stream relies on the **Amyuni USB Mobile Monitor Virtual Display** driver (
 
 ## Troubleshooting First-Run Failures
 
-### 1. WebRTC connects, but the screen is completely black.
-**Cause:** FFmpeg is missing from your system, or the path is not correctly configured. The server captured the video stream but had no encoder to compress it. 
+### 1. "Missing Dependency: FFmpeg" Error Dialog on Startup.
+**Cause:** FFmpeg is missing from your system, or the path is not correctly configured. The server cannot run without an encoder. 
 **Fix:** See the FFmpeg installation steps above. Ensure `ffmpeg.exe` can be run from your command prompt.
 
 ### 2. "Port 5000 is already in use" Error Dialog.

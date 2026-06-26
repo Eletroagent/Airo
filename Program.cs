@@ -557,7 +557,24 @@ namespace AiroWebRTCServer
             }
             else
             {
-                try { File.WriteAllText(configPath, JsonSerializer.Serialize(new { iceServers = IceServers }, jsonOpts)); } catch { }
+                string examplePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "config.example.json");
+                if (File.Exists(examplePath))
+                {
+                    try
+                    {
+                        File.Copy(examplePath, configPath);
+                        Log("[Config] config.json not found. Auto-copied config.example.json.");
+                    }
+                    catch (Exception ex) { Log($"[Config] Failed to auto-copy config.example.json: {ex.Message}"); }
+                }
+                else
+                {
+                    string errorMsg = "config.json is missing, and config.example.json could not be found to auto-copy.\nPlease create config.json in the application directory before running.";
+                    Log($"[Config] ERROR: {errorMsg.Replace("\n", " ")}");
+                    MessageBox.Show(errorMsg, "Airo Stream - Configuration Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    Environment.Exit(1);
+                    return;
+                }
             }
 
             SetProcessDPIAware();
