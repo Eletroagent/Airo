@@ -31,10 +31,12 @@
   <ItemGroup>
     <Content Include="public\**\*.*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>Always</CopyToPublishDirectory>
       <Link>public\%(RecursiveDir)%(Filename)%(Extension)</Link>
     </Content>
     <Content Include="config.example.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>Always</CopyToPublishDirectory>
     </Content>
   </ItemGroup>
 

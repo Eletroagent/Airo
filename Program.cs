@@ -272,6 +272,7 @@ namespace AiroWebRTCServer
                         string ffmpegArgs =
                             $"-f lavfi " +
                             $"-i ddagrab=framerate=60:output_idx={outputIdx}:video_size={w}x{h} " +
+                            $"-vf \"hwdownload,format=bgra\" " +
                             $"{encArgs} " +
                             $"-pix_fmt yuv420p " +
                             $"-aud 1 " +
