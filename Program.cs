@@ -14,6 +14,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Vortice.DXGI;
 using WebSocketSharp;
 using WebSocketSharp.Server;
 using SIPSorcery.Net;
@@ -258,8 +259,10 @@ namespace AiroWebRTCServer
                             Interlocked.Exchange(ref _isEncoding, 0);
                             return;
                         }
-                        int x = vdisp.Bounds.X;
-                        int y = vdisp.Bounds.Y;
+                        
+                        int outputIdx = DxgiHelper.GetDxgiOutputIndex(vdisp.DeviceName);
+                        Program.Log($"[Encoder] Mapped {vdisp.DeviceName} to DXGI output_idx={outputIdx}");
+                        
                         int w = vdisp.Bounds.Width;
                         int h = vdisp.Bounds.Height;
 
@@ -268,7 +271,7 @@ namespace AiroWebRTCServer
                         string encArgs    = BuildEncoderArgs(encoder);
                         string ffmpegArgs =
                             $"-f lavfi " +
-                            $"-i ddagrab=framerate=60:offset_x={x}:offset_y={y}:video_size={w}x{h} " +
+                            $"-i ddagrab=framerate=60:output_idx={outputIdx}:video_size={w}x{h} " +
                             $"{encArgs} " +
                             $"-pix_fmt yuv420p " +
                             $"-aud 1 " +
@@ -463,6 +466,43 @@ namespace AiroWebRTCServer
                 } catch { }
             }
             return "libx264";
+        }
+    }
+
+    public static class DxgiHelper
+    {
+        public static int GetDxgiOutputIndex(string deviceName)
+        {
+            if (DXGI.CreateDXGIFactory1(out IDXGIFactory1? factory).Failure || factory == null) 
+                return 0;
+
+            int ddaOutputIdx = 0;
+            for (uint i = 0; ; i++) 
+            {
+                if (factory.EnumAdapters1(i, out IDXGIAdapter1? adapter).Failure || adapter == null) 
+                    break;
+                
+                for (uint j = 0; ; j++) 
+                {
+                    if (adapter.EnumOutputs(j, out IDXGIOutput? output).Failure || output == null) 
+                        break;
+                    
+                    string currentDeviceName = output.Description.DeviceName;
+                    output.Dispose();
+
+                    if (string.Equals(currentDeviceName, deviceName, StringComparison.OrdinalIgnoreCase)) 
+                    {
+                        adapter.Dispose();
+                        factory.Dispose();
+                        return ddaOutputIdx;
+                    }
+                    
+                    ddaOutputIdx++;
+                }
+                adapter.Dispose();
+            }
+            factory.Dispose();
+            return 0; // Fallback to 0 if not found
         }
     }
 
@@ -700,7 +740,7 @@ namespace AiroWebRTCServer
 
                         Thread.Sleep(500);
                         found = Screen.AllScreens
-                            .FirstOrDefault(s => !screensBefore.Contains(s.DeviceName));
+                            .FirstOrDefault(s => !s.Primary && !screensBefore.Contains(s.DeviceName));
 
                         // If 15 seconds have passed and the screen is still missing, the driver base node
                         // is likely not installed. We will perform a one-time driver installation.
@@ -728,7 +768,8 @@ namespace AiroWebRTCServer
                     else
                     {
                         // Fallback: last non-primary screen
-                        VirtualDisplay = Screen.AllScreens.LastOrDefault(s => !s.Primary)
+                        VirtualDisplay = Screen.AllScreens.FirstOrDefault(s => !s.Primary && s.Bounds.Width == 1920 && s.Bounds.Height == 1080)
+                                      ?? Screen.AllScreens.LastOrDefault(s => !s.Primary)
                                       ?? Screen.PrimaryScreen;
                         Program.Log(
                             $"[Display] ⚠  Could not auto-detect virtual display. " +
